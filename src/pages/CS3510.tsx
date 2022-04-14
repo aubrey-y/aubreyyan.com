@@ -7,9 +7,21 @@ import {
     gridFilteredSortedRowEntriesSelector,
     useGridApiRef
 } from "@mui/x-data-grid-pro";
-import {Alert, Button, Paper, Snackbar, Typography} from "@mui/material";
+import {Alert, Button, Snackbar} from "@mui/material";
 import {useEffect, useState} from "react";
-import Cookies from "universal-cookie";
+
+const withRouter = (Component: () => JSX.Element) => {
+    const Wrapper = (props: JSX.IntrinsicAttributes) => {
+
+        // @ts-ignore
+        return (<Component
+                {...props}
+            />
+        );
+    };
+
+    return Wrapper;
+};
 
 function splitOnCamelCase(string: string) {
     let split = [];
@@ -47,12 +59,11 @@ function evaluateFinalGradeSeverity(finalGrade: number) {
 
 function CS3510() {
     const apiRef = useGridApiRef();
-    const cookies = new Cookies();
     const [display, setDisplay] = useState(false);
     const [displayInfo, setDisplayInfo] = useState("");
     const [finalGrade, setFinalGrade] = useState(100);
-    const cacheKey = "cs3510-sp2023-grade-store";
-    const [cache, setCache] = useState(cookies.get(cacheKey) || null);
+    const cacheKey = "cs3510-sp2022-grade-store";
+    const [cache, setCache] = useState(JSON.parse(localStorage.getItem(cacheKey) || "{}") || null);
 
     document.title = "cs3510sp2022"
 
@@ -97,14 +108,14 @@ function CS3510() {
 
     useEffect(() => {
         if (displayInfo !== "") {
-            cookies.set(cacheKey, cache, { path: '/cs3510' });
+            localStorage.setItem(cacheKey, JSON.stringify(cache));
         }
-    }, [cookies, cache, displayInfo])
+    }, [cache, displayInfo])
 
     return (
         <div className="CS3510">
             <div id="logo" className={classNames({show: true})} style={{marginTop: '-50px'}}>
-                <a href='/'>Aubrey Yan</a>
+                <a href='/'>CS 3510</a>
             </div>
             <ParticlesContainer />
             <div style={{ height: 800, width: '100%', marginTop: '50px' }}>
@@ -141,8 +152,8 @@ function CS3510() {
                         [["category", "180"],
                             ["note", "270"],
                             ["weight", "100"],
-                            ["possiblePoints", "100"],
-                            ["earnedPoints", "100"]].map((column) => {
+                            ["possiblePoints", "150"],
+                            ["earnedPoints", "150"]].map((column) => {
                                 const [columnName, width] = column;
                                 return {
                                     field: columnName,
@@ -196,4 +207,4 @@ function CS3510() {
     );
 }
 
-export default CS3510;
+export default withRouter(CS3510);
