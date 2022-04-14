@@ -7,7 +7,18 @@ import {
     gridFilteredSortedRowEntriesSelector,
     useGridApiRef
 } from "@mui/x-data-grid-pro";
-import {Alert, Button, Paper, Snackbar, Typography} from "@mui/material";
+import {isMobile} from 'react-device-detect';
+import {
+    Alert,
+    Button,
+    Dialog, DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
+    Paper,
+    Snackbar,
+    Typography
+} from "@mui/material";
 import {useEffect, useState} from "react";
 
 const withRouter = (Component: () => JSX.Element) => {
@@ -63,6 +74,7 @@ function CS3510() {
     const [finalGrade, setFinalGrade] = useState(0);
     const cacheKey = "cs3510-sp2022-grade-store";
     const [cache, setCache] = useState(JSON.parse(localStorage.getItem(cacheKey) || "{}") || null);
+    const [mobileAlert, setMobileAlert] = useState(isMobile)
 
     document.title = "cs3510sp2022"
 
@@ -192,6 +204,28 @@ function CS3510() {
                         {displayInfo}
                     </Alert>
                 </Snackbar>
+                <Dialog
+                    open={mobileAlert}
+                    onClose={() => setMobileAlert(false)}
+                    aria-labelledby="alert-dialog-title"
+                    aria-describedby="alert-dialog-description"
+                >
+                    <DialogTitle id="alert-dialog-title">
+                        Your mobile device is not supported
+                    </DialogTitle>
+                    <DialogContent>
+                        <DialogContentText id="alert-dialog-description">
+                            The library used for data entry (mui/x Data Grid Pro) does not work with mobile and I do not know why.
+                            In order to use this tool properly, access from a computer browser. Also, I am totally pirating their
+                            software lol.
+                        </DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={() => setMobileAlert(false)} autoFocus>
+                            Acknowledge
+                        </Button>
+                    </DialogActions>
+                </Dialog>
             </div>
         </div>
     );
