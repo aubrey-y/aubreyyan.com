@@ -7,7 +7,7 @@ import {
     gridFilteredSortedRowEntriesSelector,
     useGridApiRef
 } from "@mui/x-data-grid-pro";
-import {Alert, Button, Snackbar} from "@mui/material";
+import {Alert, Button, Paper, Snackbar, Typography} from "@mui/material";
 import {useEffect, useState} from "react";
 
 const withRouter = (Component: () => JSX.Element) => {
@@ -59,16 +59,14 @@ function evaluateFinalGradeSeverity(finalGrade: number) {
 
 function CS3510() {
     const apiRef = useGridApiRef();
-    const [display, setDisplay] = useState(false);
     const [displayInfo, setDisplayInfo] = useState("");
-    const [finalGrade, setFinalGrade] = useState(100);
+    const [finalGrade, setFinalGrade] = useState(0);
     const cacheKey = "cs3510-sp2022-grade-store";
     const [cache, setCache] = useState(JSON.parse(localStorage.getItem(cacheKey) || "{}") || null);
 
     document.title = "cs3510sp2022"
 
     function handleClick() {
-        console.log(gridFilteredSortedRowEntriesSelector(apiRef));
         const rowEntries = gridFilteredSortedRowEntriesSelector(apiRef);
         // @ts-ignore
         setCache(rowEntries.map((entry) => {
@@ -81,7 +79,7 @@ function CS3510() {
                 if (entry.model.category.startsWith("Quiz") || entry.model.category.startsWith("Final")) {
                     const options = entry.model.weight.split(" or ");
                     weight = options[option].substring(0, entry.model.weight.length - 1);
-                    if (entry.model.category.startsWith("Final")) {
+                    if (entry.model.category.startsWith("Final") && option === 0) {
                         earnedPoints = 0;
                     } else {
                         earnedPoints = entry.model.earnedPoints;
@@ -92,9 +90,8 @@ function CS3510() {
                 }
                 return parseFloat(weight) * (earnedPoints / entry.model.possiblePoints);
             }).reduce((x, y) => x + y)
-        })
+        });
         setFinalGrade(Math.max(...gradeOptions));
-        setDisplay(true);
     }
 
     function handleCookie() {
@@ -110,7 +107,11 @@ function CS3510() {
         if (displayInfo !== "") {
             localStorage.setItem(cacheKey, JSON.stringify(cache));
         }
-    }, [cache, displayInfo])
+    }, [cache, displayInfo]);
+
+    useEffect(() => {
+        handleClick();
+    }, [finalGrade])
 
     return (
         <div className="CS3510">
@@ -118,7 +119,7 @@ function CS3510() {
                 <a href='/'>CS 3510</a>
             </div>
             <ParticlesContainer />
-            <div style={{ height: 800, width: '100%', marginTop: '50px' }}>
+            <div style={{ height: 750, width: '100%', marginTop: '50px' }}>
                 <DataGridPro
                     apiRef={apiRef}
                     rows={
@@ -168,24 +169,13 @@ function CS3510() {
                         Toolbar: ExportToolbar
                     }}
                 />
-                <Button variant="contained" onClick={handleClick}>Submit</Button>
-                <Button variant="outlined" onClick={handleCookie}>Save Grades Locally</Button>
-                <Snackbar
-                    open={display}
-                    onClose={() => setDisplay(false)}
-                    anchorOrigin={{
-                        vertical: "bottom",
-                        horizontal: "right"
-                    }}
-                >
-                    <Alert
-                        onClose={() => setDisplay(false)}
-                        severity={evaluateFinalGradeSeverity(finalGrade)}
-                        sx={{width: "100%"}}
-                    >
-                        {`Your final grade is ${Math.round(finalGrade)}%!`}
-                    </Alert>
-                </Snackbar>
+                <span style={{ position: 'absolute', padding: '10px' }}>
+                    <Button variant="contained" onClick={handleClick}>Submit</Button>
+                </span>
+                <span style={{ position: 'absolute', padding: '10px', marginLeft: '95px' }}>
+                    <Button variant="outlined" onClick={handleCookie}>Save Grades Locally</Button>
+                </span>
+                <Typography variant="h2" style={{ position: 'absolute', padding: '20px', marginTop: '50px' }}>{`Your final grade is ${Math.round(finalGrade)}%!`}</Typography>
                 <Snackbar
                     open={displayInfo !== ""}
                     onClose={() => setDisplayInfo("")}
@@ -195,7 +185,7 @@ function CS3510() {
                     }}
                 >
                     <Alert
-                        onClose={() => setDisplay(false)}
+                        onClose={() => setDisplayInfo("")}
                         severity="info"
                         sx={{width: "100%"}}
                     >
