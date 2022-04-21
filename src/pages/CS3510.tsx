@@ -10,11 +10,11 @@ import {
 import {isMobile} from 'react-device-detect';
 import {
     Alert,
-    Button,
+    Button, darken,
     Dialog, DialogActions,
     DialogContent,
     DialogContentText,
-    DialogTitle,
+    DialogTitle, lighten,
     Paper,
     Snackbar,
     Typography
@@ -67,6 +67,12 @@ function evaluateFinalGradeSeverity(finalGrade: number) {
     }
 }
 
+const getBackgroundColor = (color: string, mode: string) =>
+    mode === 'dark' ? darken(color, 0.6) : lighten(color, 0.6);
+
+const getHoverBackgroundColor = (color: string, mode: string) =>
+    mode === 'dark' ? darken(color, 0.5) : lighten(color, 0.5);
+
 
 function CS3510() {
     const apiRef = useGridApiRef();
@@ -75,6 +81,7 @@ function CS3510() {
     const cacheKey = "cs3510-sp2022-grade-store";
     const [cache, setCache] = useState(JSON.parse(localStorage.getItem(cacheKey) || "{}") || null);
     const [mobileAlert, setMobileAlert] = useState(isMobile)
+    const [droppedItems, setDroppedItems] = useState([]);
 
     document.title = "cs3510sp2022"
 
@@ -84,26 +91,34 @@ function CS3510() {
         setCache(rowEntries.map((entry) => {
             return entry.model.earnedPoints;
         }));
-        const gradeOptions = [0, 1].map((option) => {
-            return rowEntries.map((entry) => {
+        // @ts-ignore
+        setDroppedItems(["Final Exam"]);
+        const gradeOptions = [0].map((_) => {
+            const droppedHomework = rowEntries.filter((entry) => entry.model.category.startsWith("Homework"))
+                .reduce((prev, curr) => parseInt(prev.model.earnedPoints)/parseInt(prev.model.possiblePoints) < parseInt(curr.model.earnedPoints)/parseInt(curr.model.possiblePoints) ? prev : curr).model.category;
+            const droppedQuiz = rowEntries.filter((entry) => entry.model.category.startsWith("Quiz"))
+                .reduce((prev, curr) => parseInt(prev.model.earnedPoints)/parseInt(prev.model.possiblePoints) < parseInt(curr.model.earnedPoints)/parseInt(curr.model.possiblePoints) ? prev : curr);
+            const finalGrade = rowEntries.filter((entry) => entry.model.category.startsWith("Final"))[0].model.earnedPoints;
+            return rowEntries.filter((entry) => !entry.model.category.startsWith("Final")).map((entry) => {
                 let weight: string;
                 let earnedPoints: number;
-                if (entry.model.category.startsWith("Quiz") || entry.model.category.startsWith("Final")) {
-                    const options = entry.model.weight.split(" or ");
-                    weight = options[option].substring(0, entry.model.weight.length - 1);
-                    if (entry.model.category.startsWith("Final") && option === 0) {
+                if (entry.model.category === droppedQuiz.model.category && parseInt(droppedQuiz.model.earnedPoints) < finalGrade) {
+                    earnedPoints = finalGrade;
+                    setDroppedItems((prevState => prevState.filter((item) => item !== "Final Exam").concat(entry.model.category)));
+                } else {
+                    if (entry.model.category.startsWith("Homework") && entry.model.category === droppedHomework) {
                         earnedPoints = 0;
+                        setDroppedItems((prevState => prevState.concat(entry.model.category)));
                     } else {
                         earnedPoints = entry.model.earnedPoints;
                     }
-                } else {
-                    weight = entry.model.weight.substring(0, entry.model.weight.length - 1);
-                    earnedPoints = entry.model.earnedPoints;
                 }
+                weight = entry.model.weight.substring(0, entry.model.weight.length - 1);
                 return parseFloat(weight) * (earnedPoints / entry.model.possiblePoints);
             }).reduce((x, y) => x + y)
         });
         setFinalGrade(Math.max(...gradeOptions));
+        setDisplayInfo("Your grade has been updated!")
     }
 
     function handleCookie() {
@@ -137,24 +152,25 @@ function CS3510() {
                     rows={
                         [
                             ["Class Participation", "", "5%", 5],
-                            ["Homework 1", "", "2.14%", 100],
-                            ["Homework 2", "", "2.14%", 80],
-                            ["Homework 3", "", "2.14%", 100],
-                            ["Homework 4", "", "2.14%", 100],
-                            ["Homework 5", "", "2.14%", 100],
-                            ["Homework 6", "", "2.14%", 100],
-                            ["Homework 7", "", "2.14%", 100],
-                            ["Quiz 1", "", "20% or 10%", 100],
-                            ["Quiz 2", "Add +10 for curve", "20% or 10%", 100],
-                            ["Quiz 3", "", "20% or 10%", 100],
-                            ["Quiz 4", "", "20% or 10%", 100],
-                            ["Final Exam", "Leave empty if you aren't taking final", "0% or 40%", 100],
+                            ["Homework 1", "", "2.5%", 100],
+                            ["Homework 2", "", "2.5%", 80],
+                            ["Homework 3", "", "2.5%", 100],
+                            ["Homework 4", "", "2.5%", 100],
+                            ["Homework 5", "", "2.5%", 100],
+                            ["Homework 6", "", "2.5%", 100],
+                            ["Homework 7", "", "2.5%", 100],
+                            ["Quiz 1", "", "20%", 100],
+                            ["Quiz 2", "Add +10 for curve", "20%", 100],
+                            ["Quiz 3", "", "20%", 100],
+                            ["Quiz 4", "", "20%", 100],
+                            ["Final Exam", "Final replaces lowest quiz if it will help your grade", "20% or 0%", 100],
                             ["Curve", "If they decide to curve the class", "100%", 100],
                         ].map((row, index) => {
+
                             return {
                                 id: index,
-                                category: row[0],
-                                note: row[1],
+                                category: row[0],// @ts-ignore
+                                note: row[0].startsWith("Homework") && droppedItems.includes(row[0].toString()) ? "Lowest homework dropped" : row[1],
                                 weight: row[2],
                                 possiblePoints: row[3],
                                 earnedPoints: cache == null ? 0 : (cache[index] || 0)
@@ -163,7 +179,7 @@ function CS3510() {
                     }
                     columns={
                         [["category", "180"],
-                            ["note", "270"],
+                            ["note", "350"],
                             ["weight", "100"],
                             ["possiblePoints", "150"],
                             ["earnedPoints", "150"]].map((column) => {
@@ -180,6 +196,16 @@ function CS3510() {
                     components={{
                         Toolbar: ExportToolbar
                     }}
+                    sx={{
+                        '& .dropped': {
+                            bgcolor: (theme) => getBackgroundColor(theme.palette.error.main, theme.palette.mode),
+                            '&:hover': {
+                                bgcolor: (theme) => getHoverBackgroundColor(theme.palette.error.main, theme.palette.mode)
+                            }
+                        }
+                    }}
+                    // @ts-ignore
+                    getRowClassName={(params => droppedItems.includes(params.row.category) ? 'dropped' : '')}
                 />
                 <span style={{ position: 'absolute', padding: '10px' }}>
                     <Button variant="contained" onClick={handleClick}>Submit</Button>
