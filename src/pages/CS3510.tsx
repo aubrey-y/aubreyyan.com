@@ -117,6 +117,7 @@ function CS3510() {
                 return parseFloat(weight) * (earnedPoints / entry.model.possiblePoints);
             }).reduce((x, y) => x + y)
         });
+        console.log(Math.max(...gradeOptions))
         setFinalGrade(Math.max(...gradeOptions));
         setDisplayInfo("Your grade has been updated!")
     }
@@ -213,7 +214,12 @@ function CS3510() {
                 <span style={{ position: 'absolute', padding: '10px', marginLeft: '95px' }}>
                     <Button variant="outlined" onClick={handleCookie}>Save Grades Locally</Button>
                 </span>
-                <Typography variant="h2" style={{ position: 'absolute', padding: '20px', marginTop: '50px' }}>{`Your final grade is ${Math.round(finalGrade)}%!`}</Typography>
+                <Typography variant="h2" style={{ position: 'absolute', padding: '20px', marginTop: '50px' }}>{`Your final grade is ${finalGrade}% (${
+                    finalGrade >= 90 ? "A" :
+                        finalGrade >= 80 ? "B" :
+                            finalGrade >= 70 ? "C" :
+                                finalGrade >= 65 ? "D" : "F"
+                })!`}</Typography>
                 <Snackbar
                     open={displayInfo !== ""}
                     onClose={() => setDisplayInfo("")}
