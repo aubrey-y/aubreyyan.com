@@ -9,6 +9,7 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import {Routes, Route, BrowserRouter} from "react-router-dom";
 import CS3510 from "./pages/CS3510";
+import CS4510 from "./pages/CS4510";
 
 ReactDOM.render(
   <React.StrictMode>
@@ -16,6 +17,7 @@ ReactDOM.render(
           <Routes>
               <Route path="/" element={<App />} />
               <Route path="/cs3510" element={<CS3510 />} />
+              <Route path="/cs4510" element={<CS4510 />} />
           </Routes>
       </BrowserRouter>
 
