@@ -74,22 +74,6 @@ function CS4510() {
     const [hw5, setHw5] = useState("0");
     const [hw6, setHw6] = useState("0");
     const [proj, setProj] = useState("0");
-    if (typeof cache === "string") {
-        console.log(cache);
-        const [exam1CACHE, exam2CACHE, exam3CACHE, exam4CACHE, hw1CACHE, hw2CACHE, hw3CACHE, hw4CACHE, hw5CACHE, hw6CACHE, projCACHE] = JSON.parse(cache);
-        setExam1(exam1CACHE);
-        setExam2(exam2CACHE);
-        setExam3(exam3CACHE);
-        setExam4(exam4CACHE);
-        setHw1(hw1CACHE);
-        setHw2(hw2CACHE);
-        setHw3(hw3CACHE);
-        setHw4(hw4CACHE);
-        setHw5(hw5CACHE);
-        setHw6(hw6CACHE);
-        setProj(projCACHE);
-    }
-
 
     document.title = "cs4510sp2023"
 
@@ -156,7 +140,7 @@ function CS4510() {
     }[]) {
         return textfieldData.map((textfield) => {
             let setter = acquireSetter(textfield.id);
-            return <TextField variant="filled" id={textfield.id} label={`${textfield.label} (/${textfield.total})`} value={acquireRef(textfield.id)} onChange={(event) => setter(event.target.value)} />
+            return <TextField variant="filled" key={textfield.id} id={textfield.id} label={`${textfield.label} (/${textfield.total})`} value={acquireRef(textfield.id)} onChange={(event) => setter(event.target.value)} />
         })
     }
 
@@ -206,20 +190,22 @@ function CS4510() {
     }
 
     useEffect(() => {
-        const [exam1CACHE, exam2CACHE, exam3CACHE, exam4CACHE, hw1CACHE, hw2CACHE, hw3CACHE, hw4CACHE, hw5CACHE, hw6CACHE, projCACHE] = cache;
-        setExam1(exam1CACHE);
-        setExam2(exam2CACHE);
-        setExam3(exam3CACHE);
-        setExam4(exam4CACHE);
-        setHw1(hw1CACHE);
-        setHw2(hw2CACHE);
-        setHw3(hw3CACHE);
-        setHw4(hw4CACHE);
-        setHw5(hw5CACHE);
-        setHw6(hw6CACHE);
-        setProj(projCACHE);
+        if (cache != null && cache.length > 2) {
+            const [exam1CACHE, exam2CACHE, exam3CACHE, exam4CACHE, hw1CACHE, hw2CACHE, hw3CACHE, hw4CACHE, hw5CACHE, hw6CACHE, projCACHE] = cache;
+            setExam1(exam1CACHE);
+            setExam2(exam2CACHE);
+            setExam3(exam3CACHE);
+            setExam4(exam4CACHE);
+            setHw1(hw1CACHE);
+            setHw2(hw2CACHE);
+            setHw3(hw3CACHE);
+            setHw4(hw4CACHE);
+            setHw5(hw5CACHE);
+            setHw6(hw6CACHE);
+            setProj(projCACHE);
+        }
         updateGrades();
-    }, [cache])
+    }, [])
 
     return (
         <div className="CS4510">
@@ -228,7 +214,7 @@ function CS4510() {
             </div>
             <ParticlesContainer />
 
-            <div style={{ height: 750, width: '100%', marginTop: '50px' }}>
+            <div style={{ height: 1080, width: '100%', marginTop: '50px' }}>
 
                 <Box style={{ padding: '20px'}}>
                     <Typography variant="h6" style={{position: "absolute"}}>Exams (45%) (Lowest Dropped)</Typography>
