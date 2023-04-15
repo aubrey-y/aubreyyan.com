@@ -12,6 +12,7 @@ export class ParticlesContainer extends React.PureComponent<IProps> {
     }
 
     render() {
+        const { enableClickEffect = true } = this.props;
         const options = {
             fullScreen: { enable: true, zIndex: 0},
             background: {
@@ -25,7 +26,7 @@ export class ParticlesContainer extends React.PureComponent<IProps> {
             interactivity: {
                 events: {
                     onClick: {
-                        enable: true,
+                        enable: enableClickEffect,
                         mode: "push",
                     },
                     onHover: {

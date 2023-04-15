@@ -233,7 +233,7 @@ function CS4510() {
             <div id="logo" className={classNames({show: true})} style={{marginTop: '-50px'}}>
                 <a href='/'>CS 4510</a>
             </div>
-            <ParticlesContainer />
+            <ParticlesContainer enableClickEffect={false} />
 
             <div style={{ height: 1080, width: '100%', marginTop: '50px' }}>
 
