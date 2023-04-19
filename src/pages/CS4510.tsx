@@ -8,7 +8,7 @@ import {
     Snackbar, TextField,
     Typography
 } from "@mui/material";
-import {useEffect, useState} from "react";
+import {useEffect, useReducer, useState} from "react";
 
 const withRouter = (Component: () => JSX.Element) => {
     const Wrapper = (props: JSX.IntrinsicAttributes) => {
@@ -36,8 +36,9 @@ const TOTAL_POINTS: {
     hw3: 36,
     hw4: 12,
     hw5: 18,
-    hw6: 10,
+    hw6: 24,
     proj: 100,
+    curve: 0,
 };
 
 const WEIGHTS: {
@@ -56,10 +57,18 @@ const WEIGHTS: {
     "proj": 0.1,
 };
 
+const DROPPED: {
+    [key: string]: string
+} = {
+    "exam": "exam4",
+    "hw": "hw6",
+};
+
 const OUTDATED_COOKIES = ["cs4510-sp2023-grade-store"];
 
 
 function CS4510() {
+    const [, forceUpdate] = useReducer(x => x + 1, 0);
     const [displayInfo, setDisplayInfo] = useState("");
     const [finalGrade, setFinalGrade] = useState(0);
     const cacheKey = "cs4510-sp2023-grade-store-1";
@@ -90,27 +99,29 @@ function CS4510() {
     function acquireRef(id: string) {
         switch (id) {
             case "exam1":
-                return exam1
+                return exam1;
             case "exam2":
-                return exam2
+                return exam2;
             case "exam3":
-                return exam3
+                return exam3;
             case "exam4":
-                return exam4
+                return exam4;
             case "hw1":
-                return hw1
+                return hw1;
             case "hw2":
-                return hw2
+                return hw2;
             case "hw3":
-                return hw3
+                return hw3;
             case "hw4":
-                return hw4
+                return hw4;
             case "hw5":
-                return hw5
+                return hw5;
             case "hw6":
-                return hw6
+                return hw6;
             case "proj":
-                return proj
+                return proj;
+            case "curve":
+                return curve;
         }
         return proj;
     }
@@ -118,27 +129,29 @@ function CS4510() {
     function acquireSetter(id: string) {
         switch (id) {
             case "exam1":
-                return setExam1
+                return setExam1;
             case "exam2":
-                return setExam2
+                return setExam2;
             case "exam3":
-                return setExam3
+                return setExam3;
             case "exam4":
-                return setExam4
+                return setExam4;
             case "hw1":
-                return setHw1
+                return setHw1;
             case "hw2":
-                return setHw2
+                return setHw2;
             case "hw3":
-                return setHw3
+                return setHw3;
             case "hw4":
-                return setHw4
+                return setHw4;
             case "hw5":
-                return setHw5
+                return setHw5;
             case "hw6":
-                return setHw6
+                return setHw6;
             case "proj":
-                return setProj
+                return setProj;
+            case "curve":
+                return setCurve;
         }
         return setProj;
     }
@@ -150,7 +163,16 @@ function CS4510() {
     }[]) {
         return textfieldData.map((textfield) => {
             let setter = acquireSetter(textfield.id);
-            return <TextField variant="filled" key={textfield.id} id={textfield.id} label={`${textfield.label} (/${textfield.total})`} value={acquireRef(textfield.id)} onChange={(event) => setter(event.target.value)} />
+            return <TextField
+                variant="filled"
+                key={textfield.id}
+                id={textfield.id}
+                label={`${textfield.label}` + (textfield.total > 0 ? ` (/${textfield.total})` : '')}
+                value={acquireRef(textfield.id)}
+                onChange={(event) => setter(event.target.value)}
+                focused
+                color={textfield.id === DROPPED.exam || textfield.id === DROPPED.hw ? "warning" : "success"}
+            />
         })
     }
 
@@ -162,13 +184,18 @@ function CS4510() {
         Object.keys(TOTAL_POINTS).forEach((grade) => {
             let ref = acquireRef(grade);
             let score = Number(ref) / TOTAL_POINTS[grade] * WEIGHTS[grade] * 100;
+            if (grade.startsWith("curve")) {
+                return;
+            }
             if (grade.startsWith("exam")) {
                 if (exams.length < 3) {
                     exams.push(score)
                 } else {
                     const leastExam = Math.min(...exams);
                     if (score > leastExam) {
-                        exams.splice(exams.indexOf(leastExam), 1);
+                        const droppedExamIndex = exams.indexOf(leastExam);
+                        DROPPED.exam = `exam${droppedExamIndex + 1}`;
+                        exams.splice(droppedExamIndex, 1);
                         exams.push(score);
                     }
                 }
@@ -179,7 +206,9 @@ function CS4510() {
                 } else {
                     const leastHw = Math.min(...hws);
                     if (score > leastHw) {
-                        hws.splice(hws.indexOf(leastHw), 1);
+                        const droppedHwIndex = hws.indexOf(leastHw);
+                        DROPPED.hw = `hw${droppedHwIndex + 1}`;
+                        hws.splice(droppedHwIndex, 1);
                         hws.push(score);
                     }
                 }
@@ -194,6 +223,7 @@ function CS4510() {
 
     function handleClick() {
         updateGrades();
+        forceUpdate();
         setDisplayInfo("Your grade has been updated!")
     }
 
@@ -328,7 +358,13 @@ function CS4510() {
                 </Box>
 
                 <Box component="form" autoComplete="off" style={{ padding: '20px'}}>
-                    <TextField variant="filled" key="curve" id="curve" label={`Curve (1 = 1%)`} value={curve} onChange={(event) => setCurve(event.target.value)} />
+                    {generateTextfields([
+                        {
+                            "id": "curve",
+                            "label": `Curve (1 = 1%)`,
+                            "total": TOTAL_POINTS["curve"]
+                        }
+                    ])}
                 </Box>
 
                 <span style={{ position: 'absolute', padding: '10px' }}>
